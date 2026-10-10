@@ -1,59 +1,84 @@
-# Banco de Dados — Projeto Acadêmico
+# Banco de Dados | Portal Estudantil e exercícios de SQL
 
-Projeto desenvolvido para a disciplina de **Banco de Dados**, com foco na modelagem, criação e manipulação de uma base de dados utilizando SQL.
+Repositório da disciplina de **Banco de Dados** (UNIVÁS). Reúne a modelagem e a implementação em **MySQL** de um sistema acadêmico, o **Portal Estudantil**, além dos scripts SQL praticados ao longo das aulas.
 
-## 📚 Sobre o Projeto
+## Trabalho principal: Portal Estudantil
 
-Este repositório reúne os materiais e atividades desenvolvidos ao longo da disciplina, incluindo modelos de banco de dados, diagramas, scripts SQL e exercícios práticos.
+Sistema acadêmico para universidades, para gerenciar com organização e segurança os dados de alunos, professores, cursos e matérias. Trabalho desenvolvido em equipe.
 
-O objetivo do projeto é aplicar conceitos fundamentais de **modelagem de dados**, **modelo entidade-relacionamento**, **criação de tabelas**, **relacionamentos entre entidades** e **consultas SQL**.
+**Funcionalidades previstas no levantamento de requisitos** (`Trabalho02/Base do projeto 01.jpeg`):
 
-## 📁 Estrutura do Projeto
+- **Aluno:** matrícula em curso, visualização das matérias e contato com a faculdade
+- **Professor:** escolha e visualização de turmas, escolha das matérias que vai ministrar, registro de atividades, provas, presença e notas
+- **Secretaria:** registro de entrada e saída de alunos, montagem das turmas e atribuição de cargos
 
-### `BRModelo/`
+### Modelo entidade-relacionamento
 
-Arquivos relacionados à modelagem do banco de dados desenvolvida utilizando o **brModelo**, incluindo arquivos do modelo e imagens utilizadas no projeto.
+![Modelo do Portal Estudantil](Trabalho02/Tabelas%20MER.jpeg)
 
-### `Comandos SQL/`
+| Tabela | Papel |
+|---|---|
+| `usuario` | Login, senha e cargo de quem acessa o sistema |
+| `aluno` | Dados do aluno, ligado a um `usuario` |
+| `professor` | Dados do professor, ligado a um `usuario` |
+| `curso` | Cursos oferecidos |
+| `materia` | Matérias, com horário, sala e professor responsável |
+| `professorCurso` | Tabela associativa entre professores e cursos (N:N) |
+| `cursoMateria` | Tabela associativa entre cursos e matérias (N:N) |
 
-Scripts SQL desenvolvidos durante as aulas, contendo diferentes comandos e exemplos utilizados para praticar a linguagem SQL.
+**Decisões de modelagem**
+- Chaves primárias em todas as tabelas e chaves estrangeiras para os relacionamentos
+- Relacionamentos muitos-para-muitos resolvidos com tabelas associativas
+- `ON DELETE CASCADE` e `ON UPDATE CASCADE` para manter a integridade referencial
+- `usuario` separado de `aluno` e `professor`, de modo que o acesso ao sistema fica independente do cadastro de cada perfil
 
-### `Trabalho02/`
+Documentação completa do modelo: [`Trabalho02/Modelo-relacionamento.pdf`](Trabalho02/Modelo-relacionamento.pdf)
 
-Arquivos referentes ao trabalho prático da disciplina, incluindo:
+### Consultas de exemplo
 
-* Scripts de criação das tabelas;
-* Modelos de relacionamento;
-* Diagramas MER;
-* Imagens utilizadas no desenvolvimento;
-* Documentação do modelo de banco de dados.
+```sql
+-- Alunos com seu login e cargo de acesso
+SELECT a.nome AS aluno, u.login, u.cargo
+FROM aluno a
+INNER JOIN usuario u ON u.codUsuario = a.codUsuario;
 
-## 🛠️ Tecnologias e Ferramentas
+-- Cursos, matérias e professor responsável por cada matéria
+SELECT c.nome AS curso, m.nome AS materia, p.nome AS professor
+FROM curso c
+INNER JOIN cursoMateria cm ON cm.codCurso = c.codCurso
+INNER JOIN materia m ON m.codMateria = cm.codMateria
+INNER JOIN professor p ON p.codProfessor = m.codProfessor;
+```
 
-* **SQL**
-* **DBeaver**
-* **brModelo**
-* **Git**
-* **GitHub**
+## Exercícios das aulas (`Comandos SQL/`)
 
-## 🎯 Objetivos de Aprendizagem
+Scripts de prática organizados por data de aula. Cobrem:
 
-Durante o desenvolvimento do projeto foram trabalhados conceitos como:
+- **DDL:** `CREATE TABLE`, `ALTER TABLE`, `DROP TABLE`, chaves primárias e estrangeiras, `NOT NULL`, `DEFAULT` e comentários de coluna
+- **DML:** `INSERT`, `UPDATE` e `DELETE`
+- **Consultas:** `SELECT` com `WHERE`, `AND`, `IN`, `BETWEEN`, `LIKE`, `ORDER BY` (crescente e decrescente) e apelidos de colunas e tabelas (`AS`)
+- **Cenários modelados:** ordens de serviço (clientes, técnicos, serviços), pedidos de marmitas (clientes, entregadores, itens do pedido) e uma escola (alunos, professores, cursos, matrículas)
 
-* Modelagem de banco de dados;
-* Modelo Entidade-Relacionamento (MER);
-* Criação e estruturação de tabelas;
-* Chaves primárias e estrangeiras;
-* Relacionamentos entre tabelas;
-* Comandos SQL;
-* Manipulação e consulta de dados;
-* Organização e documentação de projetos de banco de dados.
+## Modelagem conceitual (`BRModelo/`)
 
-## 👨‍💻 Projeto Acadêmico
+Modelos feitos no **brModelo**, com os arquivos `.brM3` editáveis e as imagens exportadas em `BRModelo/Imagens/`. Entre eles, o modelo de uma livraria (livros, editoras, estoque, clientes, endereços e pedidos de compra) e exercícios de cardinalidade entre entidades.
 
-Este repositório foi desenvolvido como parte das atividades acadêmicas da disciplina de **Banco de Dados**.
+## Como executar
 
----
+1. Abra o **DBeaver** e conecte ao seu servidor **MySQL**.
+2. Execute `Trabalho02/Criacao Tabelas.sql`. Ele cria o schema `portal_estudantil`, as tabelas, as chaves estrangeiras e insere dados de exemplo. Antes de criar as tabelas, selecione `portal_estudantil` como schema ativo (ou adicione `USE portal_estudantil;` logo após a linha do `CREATE SCHEMA`).
+3. Rode as consultas de exemplo acima ou os scripts de `Comandos SQL/`.
 
-**Disciplina:** Banco de Dados
-**Finalidade:** Projeto acadêmico
+## Estrutura
+
+```
+database-faculdade/
+├── BRModelo/        modelos conceituais (.brM3) e imagens exportadas
+├── Comandos SQL/    scripts SQL das aulas
+├── Trabalho02/      Portal Estudantil: requisitos, MER, documentação e script de criação
+└── README.md
+```
+
+## Tecnologias
+
+SQL · MySQL · DBeaver · brModelo · Git · GitHub
