@@ -1,97 +1,129 @@
-create table servico(
-	cod_servico int,
-	atividade varchar(255),
-	primary key(cod_servico)
+-- =====================================================================
+-- Aula 07/05 | Modelagem de ordens de serviço (schema "ordens_servico")
+-- ATENÇÃO: recria o schema "ordens_servico" do zero a cada execução.
+-- O script Aula 13-05.sql usa as tabelas criadas aqui.
+--
+-- Regras de integridade
+--   * ordem_servico -> cliente e tecnico: RESTRICT (não apagar quem tem OS).
+--   * ordem_servico -> finalizacao: SET NULL (apagar o fechamento não apaga
+--     a ordem de serviço).
+--   * ordem_servico_item: CASCADE do lado da ordem; RESTRICT do lado do
+--     serviço (um serviço já executado não pode ser apagado).
+-- =====================================================================
+
+DROP SCHEMA IF EXISTS ordens_servico;
+CREATE SCHEMA ordens_servico DEFAULT CHARACTER SET utf8mb4;
+USE ordens_servico;
+
+CREATE TABLE servico (
+	cod_servico INT AUTO_INCREMENT,
+	atividade   VARCHAR(255) NOT NULL,
+	PRIMARY KEY (cod_servico)
 );
 
-create table `ordem de servico`(
-	cod_ordem int,
-	data datetime,
-	defeito varchar(255),
-	equipamento varchar(255),
-	cod_cliente int,
-	cod_tecnico int, 
-	cod_final int,
-	primary key(cod_ordem)
+CREATE TABLE cliente (
+	cod_cliente INT AUTO_INCREMENT,
+	nome        VARCHAR(100) NOT NULL,
+	empresa     VARCHAR(255),
+	telefone    VARCHAR(20),
+	PRIMARY KEY (cod_cliente)
 );
 
-create table finalizacao(
-	cod_final int,
-	valor_total numeric,
-	data datetime,
-	data_entrega datetime,
-	primary key(cod_final)
+CREATE TABLE tecnico (
+	cod_tecnico INT AUTO_INCREMENT,
+	nome        VARCHAR(100) NOT NULL,
+	PRIMARY KEY (cod_tecnico)
 );
 
-create table cliente(
-	cod_cliente int,
-	nome varchar(30),
-	empresa varchar(255),
-	telefone varchar(30),
-	primary key(cod_cliente)
+CREATE TABLE finalizacao (
+	cod_final    INT AUTO_INCREMENT,
+	valor_total  DECIMAL(10,2) NOT NULL COMMENT 'valor total em reais, com centavos',
+	data         DATETIME COMMENT 'data de entrada do equipamento',
+	data_entrega DATETIME COMMENT 'data de entrega ao cliente',
+	PRIMARY KEY (cod_final)
 );
 
-create table tecnico(
-	cod_tecnico int primary key,
-	nome varchar(30)
+CREATE TABLE ordem_servico (
+	cod_ordem   INT AUTO_INCREMENT,
+	data        DATETIME,
+	defeito     VARCHAR(255),
+	equipamento VARCHAR(255) NOT NULL,
+	cod_cliente INT NOT NULL,
+	cod_tecnico INT NOT NULL,
+	cod_final   INT,
+	PRIMARY KEY (cod_ordem),
+	CONSTRAINT fk_os_cliente FOREIGN KEY (cod_cliente)
+		REFERENCES cliente (cod_cliente)
+		ON DELETE RESTRICT ON UPDATE CASCADE,
+	CONSTRAINT fk_os_tecnico FOREIGN KEY (cod_tecnico)
+		REFERENCES tecnico (cod_tecnico)
+		ON DELETE RESTRICT ON UPDATE CASCADE,
+	CONSTRAINT fk_os_finalizacao FOREIGN KEY (cod_final)
+		REFERENCES finalizacao (cod_final)
+		ON DELETE SET NULL ON UPDATE CASCADE
 );
 
-create table relacao_3(
-	cod_ordem int,
-	cod_servico int,
-	constraint foreign key(cod_ordem)
-	references `ordem de servico`(cod_ordem)
-	on delete cascade
-	on update cascade
+-- N:N entre ordem de serviço e serviço
+CREATE TABLE ordem_servico_item (
+	cod_ordem   INT NOT NULL,
+	cod_servico INT NOT NULL,
+	PRIMARY KEY (cod_ordem, cod_servico),
+	CONSTRAINT fk_osi_ordem FOREIGN KEY (cod_ordem)
+		REFERENCES ordem_servico (cod_ordem)
+		ON DELETE CASCADE ON UPDATE CASCADE,
+	CONSTRAINT fk_osi_servico FOREIGN KEY (cod_servico)
+		REFERENCES servico (cod_servico)
+		ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
-alter table `ordem de servico` add constraint foreign key(cod_cliente)
-	references cliente(cod_cliente)
-	on delete cascade
-	on update cascade;
+-- ---------------------------------------------------------------------
+-- Dados de exemplo (todos fictícios)
+-- ---------------------------------------------------------------------
 
+INSERT INTO cliente (cod_cliente, nome, empresa, telefone) VALUES
+	(1, 'Pedro Alves',  'Univas', '35999990001'),
+	(2, 'Ana Lima',     'Univas', '35999990002'),
+	(3, 'Giulia Costa', 'Univas', '35999990003');
 
-alter table `ordem de servico` add constraint foreign key(cod_tecnico)
-	references tecnico(cod_tecnico)
-	on delete cascade
-	on update cascade;
-
-
-alter table `ordem de servico` add constraint foreign key(cod_final)
-	references finalizacao(cod_final)
-	on delete cascade
-	on update cascade;
-
-insert into cliente(cod_cliente, nome, empresa, telefone) 
-	values(1, "Pedro", "Univas", "654654654564648"),
-	(2, "Ana", "Univas", "654654654654"),
-	(3, "Giulia", "Univas", "654564648");
-
-insert into finalizacao(cod_final, valor_total)
-	values(1, 50.00),
+INSERT INTO finalizacao (cod_final, valor_total) VALUES
+	(1, 50.00),
 	(2, 45.00),
 	(3, 65.00);
 
-insert into servico(cod_servico, atividade)
-	values(1, "Trabalhar"),
-	(2, "Programar"),
-	(3, "Executar");
+INSERT INTO servico (cod_servico, atividade) VALUES
+	(1, 'Formatação'),
+	(2, 'Troca de peça'),
+	(3, 'Limpeza e manutenção');
 
-insert into tecnico(cod_tecnico, nome)
-	values(1, "Pedro"),
-	(2, "Giulia"),
-	(3, "Ana");
+INSERT INTO tecnico (cod_tecnico, nome) VALUES
+	(1, 'Marcos Pereira'),
+	(2, 'Juliana Martins'),
+	(3, 'Rafael Nunes');
 
-insert into `ordem de servico`(cod_ordem, equipamento, cod_cliente, cod_tecnico, cod_final)
-values(1, "Impressora", 1, 1, 1),
-	(2,"Leitor de cartão", 2, 2, 2),
-	(3, "Carrinho", 3, 3, 3);
+INSERT INTO ordem_servico (cod_ordem, defeito, equipamento, cod_cliente, cod_tecnico, cod_final) VALUES
+	(1, 'Não puxa o papel',      'Impressora',       1, 1, 1),
+	(2, 'Não lê o chip',         'Leitor de cartão', 2, 2, 2),
+	(3, 'Motor não funciona',    'Carrinho',         3, 3, 3);
 
-insert into relacao_3(cod_ordem, cod_servico)
-	values(1, 1),
+INSERT INTO ordem_servico_item (cod_ordem, cod_servico) VALUES
+	(1, 1),
 	(2, 2),
 	(3, 3);
 
-select nome,telefone from cliente;
+-- Consultas de exemplo
+SELECT nome, telefone FROM cliente;
 
-update finalizacao set data_entrega = '1899-12-31';
+-- Data de entrega de cada fechamento (UPDATE sempre com WHERE)
+UPDATE finalizacao SET data_entrega = '2026-05-12 17:00:00' WHERE cod_final = 1;
+UPDATE finalizacao SET data_entrega = '2026-05-15 17:00:00' WHERE cod_final = 2;
+UPDATE finalizacao SET data_entrega = '2026-05-20 17:00:00' WHERE cod_final = 3;
+
+-- Ordens de serviço com cliente, técnico e serviço executado
+SELECT os.cod_ordem, os.equipamento, c.nome AS cliente,
+       t.nome AS tecnico, s.atividade, f.valor_total
+FROM ordem_servico os
+INNER JOIN cliente c            ON c.cod_cliente = os.cod_cliente
+INNER JOIN tecnico t            ON t.cod_tecnico = os.cod_tecnico
+INNER JOIN ordem_servico_item i ON i.cod_ordem = os.cod_ordem
+INNER JOIN servico s            ON s.cod_servico = i.cod_servico
+LEFT JOIN  finalizacao f        ON f.cod_final = os.cod_final;

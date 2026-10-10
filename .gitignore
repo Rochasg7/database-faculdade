@@ -1,0 +1,9 @@
+# brModelo: executável e arquivos de configuração local
+BRModelo/brModelo.jar
+BRModelo/autosave.chc
+BRModelo/config.chc
+
+# Sistema e editores
+.DS_Store
+Thumbs.db
+.vscode/

@@ -1,23 +1,42 @@
-select * from cliente;
-select * from cliente where cod_cliente = 1;
+-- =====================================================================
+-- Aula 13/05 | SELECT com filtros, ordenação e apelidos
+-- PRÉ-REQUISITO: executar antes o script Aula 07-05.sql, que cria o
+-- schema "ordens_servico" com as tabelas cliente e finalizacao.
+-- =====================================================================
 
-select nome from cliente where cod_cliente in(1,3);
+USE ordens_servico;
 
-select cod_final, data, data_entrega from finalizacao where data between '1899-12-01' and '2026-05-30';
+-- Registra a data de entrada (preenchida antes das consultas por data;
+-- sem isso a coluna fica NULL e o BETWEEN abaixo não retorna nada)
+UPDATE finalizacao SET data = '2026-05-01';                      -- sem WHERE: todas as linhas
+UPDATE finalizacao SET data = '2026-05-10' WHERE cod_final = 2;
+UPDATE finalizacao SET data = '2026-05-05' WHERE cod_final = 3;
 
-select nome from cliente where nome like "g%";
+-- Todas as colunas e filtro por chave
+SELECT * FROM cliente;
+SELECT * FROM cliente WHERE cod_cliente = 1;
 
-select data from finalizacao;
+-- IN: lista de valores
+SELECT nome FROM cliente WHERE cod_cliente IN (1, 3);
 
-select * from finalizacao;
+-- BETWEEN: intervalo de datas
+SELECT cod_final, data, data_entrega
+FROM finalizacao
+WHERE data BETWEEN '2026-05-01' AND '2026-05-30';
 
-update finalizacao set data = "1899-12-01";
-update finalizacao set data = "1899-12-10" where cod_final = 2;
-update finalizacao set data = "1899-12-05" where cod_final = 3;
-select * from cliente order by cod_cliente ;
-select * from cliente order by cod_cliente  desc;
+-- LIKE: nomes que começam com G
+SELECT nome FROM cliente WHERE nome LIKE 'G%';
 
-select empresa.telefone from cliente where;
+SELECT data FROM finalizacao;
+SELECT * FROM finalizacao;
 
+-- ORDER BY: crescente (padrão) e decrescente
+SELECT * FROM cliente ORDER BY cod_cliente;
+SELECT * FROM cliente ORDER BY cod_cliente DESC;
 
-select f.cod_final as "Data Entrada", f.data_entrega as "Data Entrega" from finalizacao as "f";
+-- Empresa e telefone dos clientes de uma empresa
+SELECT empresa, telefone FROM cliente WHERE empresa = 'Univas';
+
+-- Apelidos (AS) para colunas e tabela
+SELECT f.data AS `Data Entrada`, f.data_entrega AS `Data Entrega`
+FROM finalizacao AS f;
