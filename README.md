@@ -17,7 +17,7 @@ O script `Criacao Tabelas.sql` implementa o **núcleo** desses requisitos: usuá
 
 ### Modelo do banco
 
-![Modelo entidade-relacionamento do Portal Estudantil](Trabalho02/Tabelas-MER.png)
+![Modelo entidade-relacionamento do Portal Estudantil](Trabalho02\TabelasMER.png)
 
 | Tabela | Papel |
 |---|---|
